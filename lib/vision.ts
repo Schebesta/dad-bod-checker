@@ -99,8 +99,37 @@ const CRAWLER_UA =
 const IMAGE_UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 const FETCH_TIMEOUT_MS = 8000;
+// ScrapingBee adds a proxy round-trip, so give it more time than a direct fetch.
+const SCRAPINGBEE_TIMEOUT_MS = 15000;
 const LINK_HELP =
   "Couldn't read that link — it may be private or login-only. Try uploading the photo instead.";
+
+// ── Optional residential-proxy fallback ──────────────────────────────────────
+// Instagram/Facebook serve a login wall (no og:image) to many datacenter IPs —
+// notably Vercel's — so a direct server-side fetch can't read public IG/FB photos.
+// When SCRAPINGBEE_API_KEY is set, the page fetch for those hosts is routed through
+// ScrapingBee (render_js off → 1 credit), which reaches them from unblocked IPs.
+// Unset → direct fetch only (still works locally and for non-walled sites).
+function scrapingBeeKey(): string | null {
+  const k = process.env.SCRAPINGBEE_API_KEY;
+  return k && k.trim() ? k.trim() : null;
+}
+
+/** Hosts that login-wall datacenter IPs and need the proxy to read their og:image. */
+function needsProxy(host: string): boolean {
+  const h = host.toLowerCase();
+  return (
+    /(^|\.)instagram\.com$/.test(h) ||
+    /(^|\.)facebook\.com$/.test(h) ||
+    /(^|\.)fb\.(com|watch)$/.test(h)
+  );
+}
+
+/** Wrap a target URL in a ScrapingBee request (no JS render → cheapest, 1 credit). */
+function scrapingBeeUrl(target: string, key: string): string {
+  const params = new URLSearchParams({ api_key: key, url: target, render_js: "false" });
+  return `https://app.scrapingbee.com/api/v1/?${params.toString()}`;
+}
 
 /** Only http/https, and (nice-to-have) refuse obvious localhost / private hosts. */
 export function assertSafeUrl(raw: string): URL {
@@ -172,7 +201,10 @@ function findImageUrl(html: string, pageUrl: URL): string | null {
     ]) ?? firstImgSrc(html);
   if (!candidate) return null;
   try {
-    return new URL(candidate, pageUrl).toString();
+    const resolved = new URL(candidate, pageUrl);
+    // Ignore non-http(s) candidates (e.g. data:-URI placeholders inside a login wall).
+    if (resolved.protocol !== "http:" && resolved.protocol !== "https:") return null;
+    return resolved.toString();
   } catch {
     return null;
   }
@@ -183,13 +215,36 @@ function firstImgSrc(html: string): string | null {
   return m ? decodeHtmlEntities(m[1].trim()) : null;
 }
 
-async function fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {
+async function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number = FETCH_TIMEOUT_MS,
+): Promise<Response> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     return await fetch(url, { ...init, signal: controller.signal, redirect: "follow" });
   } finally {
     clearTimeout(timer);
+  }
+}
+
+/**
+ * Fetch a URL directly, or via ScrapingBee when `key` is given. Returns the
+ * Response only if it's ok, else null (never throws) so callers can fall back.
+ */
+async function tryFetch(
+  target: string,
+  headers: Record<string, string>,
+  key?: string,
+): Promise<Response | null> {
+  const url = key ? scrapingBeeUrl(target, key) : target;
+  const timeoutMs = key ? SCRAPINGBEE_TIMEOUT_MS : FETCH_TIMEOUT_MS;
+  try {
+    const res = await fetchWithTimeout(url, { headers }, timeoutMs);
+    return res.ok ? res : null;
+  } catch {
+    return null;
   }
 }
 
@@ -200,36 +255,44 @@ async function fetchWithTimeout(url: string, init: RequestInit): Promise<Respons
  */
 export async function extractImageFromUrl(rawUrl: string): Promise<ImagePayload> {
   const pageUrl = assertSafeUrl(rawUrl);
+  const key = scrapingBeeKey() ?? undefined;
+  const pageHeaders = {
+    "User-Agent": CRAWLER_UA,
+    Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+  };
 
-  let pageRes: Response;
-  try {
-    pageRes = await fetchWithTimeout(pageUrl.toString(), {
-      headers: {
-        "User-Agent": CRAWLER_UA,
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
-      },
-    });
-  } catch {
-    throw new UserInputError(LINK_HELP);
+  // Known login-walled hosts (IG/FB) go straight through the proxy when configured.
+  // Everything else is fetched directly, then retried through the proxy if a direct
+  // read came back empty or without an extractable image (an unanticipated wall).
+  const proxyFirst = Boolean(key) && needsProxy(pageUrl.hostname);
+  let pageRes = await tryFetch(pageUrl.toString(), pageHeaders, proxyFirst ? key : undefined);
+  let html = pageRes ? await pageRes.text() : null;
+
+  if (key && !proxyFirst && (!html || !findImageUrl(html, pageUrl))) {
+    pageRes = await tryFetch(pageUrl.toString(), pageHeaders, key);
+    if (pageRes) html = await pageRes.text();
   }
-  if (!pageRes.ok) throw new UserInputError(LINK_HELP);
+  if (!html) throw new UserInputError(LINK_HELP);
 
-  const html = await pageRes.text();
   const imageUrl = findImageUrl(html, pageUrl);
   if (!imageUrl) throw new UserInputError(LINK_HELP);
 
-  const safeImageUrl = assertSafeUrl(imageUrl);
-
-  let imgRes: Response;
+  let safeImageUrl: URL;
   try {
-    imgRes = await fetchWithTimeout(safeImageUrl.toString(), {
-      headers: { "User-Agent": IMAGE_UA, Accept: "image/*,*/*;q=0.8" },
-    });
+    safeImageUrl = assertSafeUrl(imageUrl);
   } catch {
+    // A malformed / non-http(s) image reference is an unreadable link, not a bad
+    // user URL — surface the friendly message instead of a raw validation error.
     throw new UserInputError(LINK_HELP);
   }
-  if (!imgRes.ok) throw new UserInputError(LINK_HELP);
+
+  // The og:image lives on a public CDN, so fetch it directly; if that fails and a
+  // proxy is configured, retry through it (covers CDNs that also block the server).
+  const imageHeaders = { "User-Agent": IMAGE_UA, Accept: "image/*,*/*;q=0.8" };
+  let imgRes = await tryFetch(safeImageUrl.toString(), imageHeaders);
+  if (!imgRes && key) imgRes = await tryFetch(safeImageUrl.toString(), imageHeaders, key);
+  if (!imgRes) throw new UserInputError(LINK_HELP);
 
   // Guard against oversized downloads (content-length first, then actual bytes).
   const declared = Number(imgRes.headers.get("content-length"));

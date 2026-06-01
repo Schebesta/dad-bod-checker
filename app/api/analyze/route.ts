@@ -18,6 +18,9 @@ import {
 // Node runtime (Anthropic SDK + Buffer); never cache — every analysis is dynamic.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// Reading IG/FB goes through a proxy fetch + image fetch + a vision call — give the
+// chain headroom beyond the short default so it doesn't get cut off mid-analysis.
+export const maxDuration = 30;
 
 function errorResponse(message: string, status: number) {
   return NextResponse.json<AnalyzeErrorResponse>({ error: message }, { status });
