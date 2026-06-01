@@ -86,7 +86,17 @@ export function parseImageDataUrl(imageDataUrl: string): ImagePayload {
 // URL → og:image extraction
 // ─────────────────────────────────────────────────────────────────────────────
 
-const DESKTOP_UA =
+// Instagram, Facebook, and most sites only emit Open Graph <meta> tags (og:image)
+// to recognized link-preview crawlers. A normal browser User-Agent gets the
+// logged-out app shell / login wall with NO og:image at all — which is exactly why
+// a pasted IG/FB page used to fail with "couldn't read that link". So we identify
+// as Facebook's external-hit crawler for the PAGE fetch, the same UA that
+// Messenger / WhatsApp / Slack use to unfurl link previews.
+const CRAWLER_UA =
+  "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)";
+// The og:image itself lives on a public CDN that serves bytes to anyone, so a
+// vanilla browser UA is the most broadly compatible choice for the raw download.
+const IMAGE_UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 const FETCH_TIMEOUT_MS = 8000;
 const LINK_HELP =
@@ -195,7 +205,7 @@ export async function extractImageFromUrl(rawUrl: string): Promise<ImagePayload>
   try {
     pageRes = await fetchWithTimeout(pageUrl.toString(), {
       headers: {
-        "User-Agent": DESKTOP_UA,
+        "User-Agent": CRAWLER_UA,
         Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
       },
@@ -214,7 +224,7 @@ export async function extractImageFromUrl(rawUrl: string): Promise<ImagePayload>
   let imgRes: Response;
   try {
     imgRes = await fetchWithTimeout(safeImageUrl.toString(), {
-      headers: { "User-Agent": DESKTOP_UA, Accept: "image/*,*/*;q=0.8" },
+      headers: { "User-Agent": IMAGE_UA, Accept: "image/*,*/*;q=0.8" },
     });
   } catch {
     throw new UserInputError(LINK_HELP);
