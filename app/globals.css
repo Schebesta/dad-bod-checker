@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Dad Bod Checker — playful, high-energy dark theme.
+   Tailwind v4: design tokens live here (no tailwind.config.js).
+   ────────────────────────────────────────────────────────────────────────── */
+
+@theme {
+  /* Core surface palette — deep midnight with a hint of indigo. */
+  --color-night: #0b1020;
+  --color-night-2: #0f1530;
+  --color-surface: #161d3d;
+  --color-surface-2: #1e264f;
+  --color-hairline: #2b346a;
+
+  /* Ink. */
+  --color-ink: #f4f6ff;
+  --color-ink-soft: #aab2d8;
+  --color-ink-faint: #7b85b8;
+
+  /* Brand accents — sunset gradient: mango → coral → grape. */
+  --color-mango: #ffb020;
+  --color-coral: #ff5d8f;
+  --color-grape: #8b5cf6;
+  --color-mint: #34d399;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* Brand gradient used across CTAs, headings, gauges. */
+  --gradient-brand: linear-gradient(
+    100deg,
+    var(--color-mango) 0%,
+    var(--color-coral) 52%,
+    var(--color-grape) 100%
+  );
+}
+
+:root {
+  color-scheme: dark;
+  --background: var(--color-night);
+  --foreground: var(--color-ink);
+}
+
+@layer base {
+  html {
+    background: var(--color-night);
+  }
+
+  body {
+    background:
+      radial-gradient(
+        60rem 40rem at 50% -10%,
+        rgba(139, 92, 246, 0.22),
+        transparent 60%
+      ),
+      radial-gradient(
+        50rem 32rem at 100% 0%,
+        rgba(255, 93, 143, 0.16),
+        transparent 55%
+      ),
+      var(--color-night);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Visible, on-brand focus ring everywhere. */
+  :focus-visible {
+    outline: 2px solid var(--color-mango);
+    outline-offset: 2px;
+    border-radius: 0.35rem;
+  }
+}
+
+@utility text-gradient {
+  background: var(--gradient-brand);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+@utility bg-brand {
+  background-image: var(--gradient-brand);
+}
+
+/* Slow drift for hero background blobs. */
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-14px) scale(1.04);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 9s ease-in-out infinite;
+}
+
+/* Respect users who prefer less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
