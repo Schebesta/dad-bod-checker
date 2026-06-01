@@ -12,6 +12,7 @@ import {
 import { Dropzone } from "./Dropzone";
 import { UrlInput, isProbablyUrl } from "./UrlInput";
 import { ResultCard } from "./ResultCard";
+import { HaloHandoff } from "./HaloHandoff";
 import { cn } from "./cn";
 
 type Tab = "photo" | "link";
@@ -126,8 +127,9 @@ export function CheckForm() {
 
   if (result) {
     return (
-      <div ref={resultRef} className="w-full scroll-mt-6">
+      <div ref={resultRef} className="flex w-full flex-col gap-10 scroll-mt-6">
         <ResultCard result={result} onReset={handleReset} />
+        <HaloHandoff result={result} />
       </div>
     );
   }
