@@ -1,0 +1,862 @@
+/* ============================================================================
+   yourhalo.css — the HALO brand design system
+   ----------------------------------------------------------------------------
+   A small, self-contained stylesheet that mirrors the look & feel of
+   yourhalo.health: clean white canvas, charcoal ink, a single teal accent,
+   a modern grotesque typeface (Geist), minimal dark CTAs, hairline rules and
+   a lot of breathing room — "pathology, optimised".
+
+   Everything is scoped under `.halo` so it never touches the rest of the app.
+   Tailwind handles layout/responsive composition in the markup; these classes
+   carry the brand (colour, type treatment, the gift-card object, buttons).
+   ========================================================================== */
+
+.halo {
+  /* — Canvas — */
+  --halo-bg: #ffffff;
+  --halo-paper: #f5f4ef; /* warm off-white for alternating sections */
+  --halo-ink-deep: #0d0f13; /* near-black band background */
+
+  /* — Ink / text — */
+  --halo-ink: #15171c; /* primary text + dark buttons */
+  --halo-ink-2: #34383f; /* secondary headings */
+  --halo-muted: #5f636b; /* body copy */
+  --halo-faint: #8c9099; /* captions, fine print */
+  --halo-on-dark: #eef0ee; /* text on the ink band */
+  --halo-on-dark-muted: #9aa3a1;
+
+  /* — Lines — */
+  --halo-line: #e6e5df; /* hairline on white */
+  --halo-line-dark: rgba(255, 255, 255, 0.14);
+
+  /* — Accent (the HALO teal) — */
+  --halo-teal: #12b3a6;
+  --halo-teal-deep: #0a766d; /* accent text / hover on light */
+  --halo-teal-bright: #2fd6c4; /* accent on dark */
+  --halo-teal-tint: #e7f6f3; /* soft accent wash */
+
+  /* — Form — */
+  --halo-radius: 12px;
+  --halo-radius-sm: 9px;
+  --halo-shadow: 0 1px 2px rgba(20, 22, 28, 0.04), 0 12px 30px -18px rgba(20, 22, 28, 0.22);
+
+  color: var(--halo-ink);
+  background: var(--halo-bg);
+  font-family: var(--font-geist-sans), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-feature-settings: "ss01", "cv01";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  line-height: 1.5;
+}
+
+.halo *,
+.halo *::before,
+.halo *::after {
+  box-sizing: border-box;
+}
+
+/* Low-specificity reset (via :where) so component classes like .halo-btn and
+   .halo-nav__link keep control of their own colour. */
+.halo :where(a) {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ----------------------------------------------------------------------------
+   Layout helpers
+   -------------------------------------------------------------------------- */
+.halo-container {
+  width: 100%;
+  max-width: 1180px;
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 5vw, 2.5rem);
+}
+
+.halo-rule {
+  height: 1px;
+  background: var(--halo-line);
+  border: 0;
+}
+
+/* ----------------------------------------------------------------------------
+   Typography
+   -------------------------------------------------------------------------- */
+.halo-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--halo-teal-deep);
+}
+.halo-eyebrow--muted {
+  color: var(--halo-faint);
+}
+.halo-eyebrow--ondark {
+  color: var(--halo-teal-bright);
+}
+
+.halo-display {
+  font-size: clamp(2.6rem, 6.4vw, 4.75rem);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+  font-weight: 600;
+  color: var(--halo-ink);
+  text-wrap: balance;
+}
+
+.halo-h2 {
+  font-size: clamp(1.9rem, 3.8vw, 3rem);
+  line-height: 1.04;
+  letter-spacing: -0.028em;
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+.halo-h3 {
+  font-size: clamp(1.15rem, 2vw, 1.4rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+.halo-lead {
+  font-size: clamp(1.05rem, 1.55vw, 1.3rem);
+  line-height: 1.55;
+  color: var(--halo-muted);
+  text-wrap: pretty;
+}
+
+.halo-muted {
+  color: var(--halo-muted);
+}
+.halo-faint {
+  color: var(--halo-faint);
+}
+.halo-teal-text {
+  color: var(--halo-teal-deep);
+}
+
+/* A tasteful pencil-underline highlight for one phrase in a headline */
+.halo-mark-underline {
+  background-image: linear-gradient(var(--halo-teal-tint), var(--halo-teal-tint));
+  background-repeat: no-repeat;
+  background-position: 0 88%;
+  background-size: 100% 0.32em;
+  padding-inline: 0.04em;
+}
+
+/* ----------------------------------------------------------------------------
+   Brand mark
+   -------------------------------------------------------------------------- */
+.halo-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  font-size: 0.98rem;
+  text-transform: uppercase;
+  color: var(--halo-ink);
+}
+.halo-mark__ring {
+  display: block;
+  flex: none;
+  color: var(--halo-teal);
+}
+.halo-mark--ondark {
+  color: #fff;
+}
+
+/* ----------------------------------------------------------------------------
+   Buttons
+   -------------------------------------------------------------------------- */
+.halo-btn {
+  --_bg: var(--halo-ink);
+  --_fg: #fff;
+  --_bd: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.95rem 1.5rem;
+  border-radius: var(--halo-radius);
+  border: 1px solid var(--_bd);
+  background: var(--_bg);
+  color: var(--_fg);
+  font-size: 0.97rem;
+  font-weight: 560;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease,
+    color 0.2s ease, box-shadow 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.halo-btn:hover {
+  transform: translateY(-1px);
+}
+.halo-btn:active {
+  transform: translateY(0);
+}
+.halo-btn:focus-visible {
+  outline: 2px solid var(--halo-teal);
+  outline-offset: 2px;
+}
+
+.halo-btn--primary {
+  --_bg: var(--halo-ink);
+  --_fg: #fff;
+  box-shadow: 0 12px 24px -16px rgba(20, 22, 28, 0.7);
+}
+.halo-btn--primary:hover {
+  --_bg: #000;
+}
+
+.halo-btn--ghost {
+  --_bg: transparent;
+  --_fg: var(--halo-ink);
+  --_bd: var(--halo-line);
+}
+.halo-btn--ghost:hover {
+  --_bd: var(--halo-ink);
+  background: rgba(20, 22, 28, 0.03);
+}
+
+/* On the dark ink band */
+.halo-btn--light {
+  --_bg: #fff;
+  --_fg: var(--halo-ink);
+}
+.halo-btn--light:hover {
+  --_bg: #fff;
+  box-shadow: 0 14px 30px -16px rgba(0, 0, 0, 0.6);
+}
+.halo-btn--outline-light {
+  --_bg: transparent;
+  --_fg: #fff;
+  --_bd: var(--halo-line-dark);
+}
+.halo-btn--outline-light:hover {
+  --_bd: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.halo-btn--block {
+  width: 100%;
+}
+
+/* ----------------------------------------------------------------------------
+   Trust row + dotted separators
+   -------------------------------------------------------------------------- */
+.halo-trust {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 1rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
+  color: var(--halo-muted);
+}
+.halo-trust__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  white-space: nowrap;
+}
+.halo-trust__item::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--halo-teal);
+  flex: none;
+}
+
+/* ----------------------------------------------------------------------------
+   Pills / badges
+   -------------------------------------------------------------------------- */
+.halo-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--halo-line);
+  background: #fff;
+  font-size: 0.78rem;
+  font-weight: 540;
+  color: var(--halo-ink-2);
+}
+.halo-pill--teal {
+  border-color: transparent;
+  background: var(--halo-teal-tint);
+  color: var(--halo-teal-deep);
+}
+.halo-pill--ondark {
+  border-color: var(--halo-line-dark);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--halo-on-dark);
+}
+
+/* ----------------------------------------------------------------------------
+   Cards / tiles / surfaces
+   -------------------------------------------------------------------------- */
+.halo-tile {
+  background: #fff;
+  border: 1px solid var(--halo-line);
+  border-radius: var(--halo-radius);
+  padding: clamp(1.4rem, 2.4vw, 1.9rem);
+  height: 100%;
+}
+.halo-tile__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 10px;
+  background: var(--halo-teal-tint);
+  color: var(--halo-teal-deep);
+  margin-bottom: 1.1rem;
+}
+
+/* ----------------------------------------------------------------------------
+   Numbered steps
+   -------------------------------------------------------------------------- */
+.halo-step__num {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--halo-teal-deep);
+}
+
+/* ----------------------------------------------------------------------------
+   "The difference, line by line" comparison
+   -------------------------------------------------------------------------- */
+.halo-compare {
+  border: 1px solid var(--halo-line);
+  border-radius: var(--halo-radius);
+  overflow: hidden;
+  background: #fff;
+}
+.halo-compare__row {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1.25fr;
+  align-items: stretch;
+}
+.halo-compare__row + .halo-compare__row {
+  border-top: 1px solid var(--halo-line);
+}
+.halo-compare__cell {
+  padding: 1rem clamp(0.9rem, 2vw, 1.4rem);
+  font-size: 0.95rem;
+}
+.halo-compare__cell--label {
+  color: var(--halo-faint);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+}
+.halo-compare__cell--them {
+  color: var(--halo-muted);
+  border-left: 1px solid var(--halo-line);
+}
+.halo-compare__cell--halo {
+  color: var(--halo-ink);
+  font-weight: 540;
+  background: var(--halo-teal-tint);
+  border-left: 1px solid #fff;
+}
+.halo-compare__head .halo-compare__cell {
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* ----------------------------------------------------------------------------
+   The gift-card object — the premium hero artefact
+   -------------------------------------------------------------------------- */
+.halo-giftcard {
+  position: relative;
+  width: 100%;
+  max-width: 30rem;
+  aspect-ratio: 1.62 / 1;
+  border-radius: 20px;
+  padding: clamp(1.25rem, 3.2vw, 1.9rem);
+  color: #f3f6f5;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(120% 140% at 85% 12%, rgba(47, 214, 196, 0.34) 0%, rgba(47, 214, 196, 0) 46%),
+    linear-gradient(152deg, #0c4a45 0%, #0d2a2b 46%, #0b1417 100%);
+  box-shadow: 0 2px 4px rgba(11, 20, 23, 0.2), 0 34px 60px -28px rgba(8, 30, 28, 0.85),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+/* guilloché "halo" rings, etched faintly into the card */
+.halo-giftcard::before {
+  content: "";
+  position: absolute;
+  inset: -30% -10% auto auto;
+  width: 78%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background:
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      rgba(255, 255, 255, 0.06) 0,
+      rgba(255, 255, 255, 0.06) 1px,
+      transparent 1px,
+      transparent 11px
+    );
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 60%, transparent 72%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 60%, transparent 72%);
+  z-index: -1;
+}
+/* diagonal foil sheen */
+.halo-giftcard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    122deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.1) 46%,
+    rgba(255, 255, 255, 0) 60%
+  );
+  z-index: -1;
+}
+.halo-giftcard__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.halo-giftcard__chip {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(243, 246, 245, 0.72);
+}
+.halo-giftcard__tagline {
+  font-size: clamp(1.05rem, 2.6vw, 1.45rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: #fff;
+}
+.halo-giftcard__product {
+  margin-top: 0.35rem;
+  font-size: 0.82rem;
+  color: rgba(243, 246, 245, 0.72);
+}
+.halo-giftcard__bottom {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.halo-giftcard__amount {
+  font-size: clamp(1.6rem, 4vw, 2.1rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.halo-giftcard__names {
+  text-align: right;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: rgba(243, 246, 245, 0.82);
+  min-width: 0;
+}
+.halo-giftcard__names span {
+  color: rgba(243, 246, 245, 0.5);
+}
+.halo-giftcard__msg {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: rgba(243, 246, 245, 0.78);
+  max-width: 60%;
+}
+
+/* ----------------------------------------------------------------------------
+   Form controls (the gift builder)
+   -------------------------------------------------------------------------- */
+.halo-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.halo-label {
+  font-size: 0.78rem;
+  font-weight: 560;
+  letter-spacing: 0.02em;
+  color: var(--halo-ink-2);
+}
+.halo-input,
+.halo-textarea {
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--halo-line);
+  border-radius: var(--halo-radius-sm);
+  padding: 0.7rem 0.85rem;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--halo-ink);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.halo-textarea {
+  resize: vertical;
+  min-height: 4.5rem;
+}
+.halo-input::placeholder,
+.halo-textarea::placeholder {
+  color: var(--halo-faint);
+}
+.halo-input:focus,
+.halo-textarea:focus {
+  outline: none;
+  border-color: var(--halo-teal);
+  box-shadow: 0 0 0 3px var(--halo-teal-tint);
+}
+
+/* Segmented amount choices */
+.halo-choice {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--halo-line);
+  border-radius: var(--halo-radius-sm);
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+.halo-choice:hover {
+  border-color: #cdccc4;
+}
+.halo-choice__amount {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.halo-choice__note {
+  font-size: 0.72rem;
+  color: var(--halo-faint);
+}
+.halo-choice--active {
+  border-color: var(--halo-teal);
+  background: var(--halo-teal-tint);
+  box-shadow: 0 0 0 1px var(--halo-teal);
+}
+.halo-choice--active .halo-choice__note {
+  color: var(--halo-teal-deep);
+}
+
+/* ----------------------------------------------------------------------------
+   FAQ (native <details>)
+   -------------------------------------------------------------------------- */
+.halo-faq {
+  border-top: 1px solid var(--halo-line);
+}
+.halo-faq__item {
+  border-bottom: 1px solid var(--halo-line);
+}
+.halo-faq__q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 0;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 560;
+  font-size: 1.02rem;
+  letter-spacing: -0.01em;
+  color: var(--halo-ink);
+}
+.halo-faq__q::-webkit-details-marker {
+  display: none;
+}
+.halo-faq__sign {
+  flex: none;
+  position: relative;
+  width: 1rem;
+  height: 1rem;
+  color: var(--halo-teal-deep);
+  transition: transform 0.2s ease;
+}
+.halo-faq__item[open] .halo-faq__sign {
+  transform: rotate(45deg);
+}
+.halo-faq__a {
+  padding: 0 0 1.4rem;
+  max-width: 60ch;
+  color: var(--halo-muted);
+  line-height: 1.6;
+}
+
+/* ----------------------------------------------------------------------------
+   Dark ink band
+   -------------------------------------------------------------------------- */
+.halo-band-ink {
+  background: var(--halo-ink-deep);
+  color: var(--halo-on-dark);
+}
+.halo-band-ink .halo-muted {
+  color: var(--halo-on-dark-muted);
+}
+
+/* ----------------------------------------------------------------------------
+   Sticky nav + announcement
+   -------------------------------------------------------------------------- */
+.halo-announce {
+  background: var(--halo-ink-deep);
+  color: var(--halo-on-dark);
+  font-size: 0.8rem;
+  letter-spacing: 0.01em;
+}
+.halo-nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: saturate(140%) blur(12px);
+  border-bottom: 1px solid var(--halo-line);
+}
+.halo-nav__link {
+  font-size: 0.9rem;
+  color: var(--halo-muted);
+  transition: color 0.15s ease;
+}
+.halo-nav__link:hover {
+  color: var(--halo-ink);
+}
+
+/* ----------------------------------------------------------------------------
+   Entrance motion (CSS only, respects reduced-motion)
+   -------------------------------------------------------------------------- */
+@keyframes halo-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.halo-rise {
+  animation: halo-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.halo-rise-2 {
+  animation-delay: 0.08s;
+}
+.halo-rise-3 {
+  animation-delay: 0.16s;
+}
+.halo-rise-4 {
+  animation-delay: 0.24s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .halo *,
+  .halo *::before,
+  .halo *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ============================================================================
+   Layout utilities — a small, self-contained subset matching the Tailwind
+   class names used in this route's markup. Scoped to `.halo` and shipped in
+   this stylesheet (which the /gift segment always loads) so the page never
+   depends on Tailwind's per-route utility chunking.
+   ========================================================================== */
+
+/* display / box */
+.halo .grid { display: grid; }
+.halo .flex { display: flex; }
+.halo .hidden { display: none; }
+.halo .block { display: block; }
+.halo .flex-col { flex-direction: column; }
+.halo .flex-row { flex-direction: row; }
+.halo .flex-wrap { flex-wrap: wrap; }
+.halo .relative { position: relative; }
+.halo .absolute { position: absolute; }
+.halo .overflow-hidden { overflow: hidden; }
+.halo .pointer-events-none { pointer-events: none; }
+.halo .whitespace-nowrap { white-space: nowrap; }
+
+/* alignment */
+.halo .items-center { align-items: center; }
+.halo .items-start { align-items: flex-start; }
+.halo .items-end { align-items: flex-end; }
+.halo .justify-center { justify-content: center; }
+.halo .justify-between { justify-content: space-between; }
+.halo .justify-end { justify-content: flex-end; }
+.halo .self-center { align-self: center; }
+
+/* grid columns */
+.halo .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* gaps */
+.halo .gap-2 { gap: 0.5rem; }
+.halo .gap-3 { gap: 0.75rem; }
+.halo .gap-4 { gap: 1rem; }
+.halo .gap-5 { gap: 1.25rem; }
+.halo .gap-6 { gap: 1.5rem; }
+.halo .gap-8 { gap: 2rem; }
+.halo .gap-10 { gap: 2.5rem; }
+.halo .gap-12 { gap: 3rem; }
+.halo .gap-x-6 { column-gap: 1.5rem; }
+.halo .gap-x-10 { column-gap: 2.5rem; }
+.halo .gap-y-3 { row-gap: 0.75rem; }
+.halo .gap-y-12 { row-gap: 3rem; }
+
+/* margins */
+.halo .mx-auto { margin-left: auto; margin-right: auto; }
+.halo .mt-0\.5 { margin-top: 0.125rem; }
+.halo .mt-1 { margin-top: 0.25rem; }
+.halo .mt-2 { margin-top: 0.5rem; }
+.halo .mt-3 { margin-top: 0.75rem; }
+.halo .mt-4 { margin-top: 1rem; }
+.halo .mt-5 { margin-top: 1.25rem; }
+.halo .mt-6 { margin-top: 1.5rem; }
+.halo .mt-8 { margin-top: 2rem; }
+.halo .mt-9 { margin-top: 2.25rem; }
+.halo .mt-10 { margin-top: 2.5rem; }
+.halo .mt-12 { margin-top: 3rem; }
+.halo .mt-14 { margin-top: 3.5rem; }
+.halo .mb-1 { margin-bottom: 0.25rem; }
+
+/* padding */
+.halo .p-0 { padding: 0; }
+.halo .p-4 { padding: 1rem; }
+.halo .pb-10 { padding-bottom: 2.5rem; }
+.halo .pl-9 { padding-left: 2.25rem; }
+.halo .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.halo .py-10 { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+.halo .py-14 { padding-top: 3.5rem; padding-bottom: 3.5rem; }
+.halo .py-16 { padding-top: 4rem; padding-bottom: 4rem; }
+.halo .py-20 { padding-top: 5rem; padding-bottom: 5rem; }
+.halo .py-24 { padding-top: 6rem; padding-bottom: 6rem; }
+
+/* sizing */
+.halo .w-full { width: 100%; }
+.halo .h-full { height: 100%; }
+.halo .h-2 { height: 0.5rem; }
+.halo .h-16 { height: 4rem; }
+.halo .max-w-xs { max-width: 20rem; }
+.halo .max-w-xl { max-width: 36rem; }
+.halo .max-w-2xl { max-width: 42rem; }
+.halo .max-w-3xl { max-width: 48rem; }
+
+/* borders / radius (border-color comes from inline style where used) */
+.halo .border { border-width: 1px; border-style: solid; }
+.halo .border-0 { border: 0; }
+.halo .border-t { border-top-width: 1px; border-top-style: solid; }
+.halo .border-b { border-bottom-width: 1px; border-bottom-style: solid; }
+.halo .border-y { border-top-width: 1px; border-bottom-width: 1px; border-top-style: solid; border-bottom-style: solid; }
+.halo .rounded-full { border-radius: 9999px; }
+.halo .rounded-xl { border-radius: 0.75rem; }
+
+/* typography */
+.halo .text-xs { font-size: 0.75rem; line-height: 1rem; }
+.halo .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+.halo .text-base { font-size: 1rem; line-height: 1.5rem; }
+.halo .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+.halo .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+.halo .text-\[0\.72rem\] { font-size: 0.72rem; }
+.halo .text-\[0\.78rem\] { font-size: 0.78rem; }
+.halo .text-\[0\.8rem\] { font-size: 0.8rem; }
+.halo .text-center { text-align: center; }
+.halo .text-white { color: #fff; }
+.halo .font-medium { font-weight: 500; }
+.halo .font-semibold { font-weight: 600; }
+.halo .leading-relaxed { line-height: 1.625; }
+.halo .tracking-tight { letter-spacing: -0.025em; }
+.halo .tracking-wide { letter-spacing: 0.025em; }
+.halo .uppercase { text-transform: uppercase; }
+
+/* position helpers */
+.halo .top-1\/2 { top: 50%; }
+.halo .left-3 { left: 0.75rem; }
+.halo .-translate-y-1\/2 { transform: translateY(-50%); }
+
+/* order */
+.halo .order-1 { order: 1; }
+.halo .order-2 { order: 2; }
+
+/* vertical rhythm */
+.halo .space-y-2 > * + * { margin-top: 0.5rem; }
+
+/* screen-reader only */
+.halo .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ≥ 640px */
+@media (min-width: 640px) {
+  .halo .sm\:inline { display: inline; }
+  .halo .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .halo .sm\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .halo .sm\:py-24 { padding-top: 6rem; padding-bottom: 6rem; }
+  .halo .sm\:py-28 { padding-top: 7rem; padding-bottom: 7rem; }
+  .halo .sm\:py-32 { padding-top: 8rem; padding-bottom: 8rem; }
+}
+
+/* ≥ 768px */
+@media (min-width: 768px) {
+  .halo .md\:flex { display: flex; }
+  .halo .md\:flex-row { flex-direction: row; }
+  .halo .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .halo .md\:grid-cols-\[1\.2fr_1fr\] { grid-template-columns: 1.2fr 1fr; }
+  .halo .md\:items-center { align-items: center; }
+  .halo .md\:items-start { align-items: flex-start; }
+  .halo .md\:justify-between { justify-content: space-between; }
+}
+
+/* ≥ 1024px */
+@media (min-width: 1024px) {
+  .halo .lg\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .halo .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .halo .lg\:grid-cols-\[1\.05fr_0\.95fr\] { grid-template-columns: 1.05fr 0.95fr; }
+  .halo .lg\:grid-cols-\[0\.8fr_1\.2fr\] { grid-template-columns: 0.8fr 1.2fr; }
+  .halo .lg\:gap-12 { gap: 3rem; }
+  .halo .lg\:gap-16 { gap: 4rem; }
+  .halo .lg\:gap-20 { gap: 5rem; }
+  .halo .lg\:order-1 { order: 1; }
+  .halo .lg\:order-2 { order: 2; }
+  .halo .lg\:sticky { position: sticky; }
+  .halo .lg\:top-28 { top: 7rem; }
+  .halo .lg\:items-start { align-items: flex-start; }
+  .halo .lg\:justify-end { justify-content: flex-end; }
+}
