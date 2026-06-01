@@ -1,99 +1,86 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import {
   type AnalyzeRequest,
   type AnalyzeErrorResponse,
   type DadBodResult,
-  MAX_IMAGE_BYTES,
 } from "@/lib/types";
+import {
+  UserInputError,
+  parseImageDataUrl,
+  assertSafeUrl,
+  extractImageFromUrl,
+  analyzeImage,
+  mockResult,
+  hasApiKey,
+  type ImagePayload,
+} from "@/lib/vision";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TEMPORARY MOCK STUB — owned by the "Vision AI API" task.
-// That task will REPLACE this file with a real Claude-vision implementation
-// (plus lib/vision.ts). It exists now only so the landing-page UI can be built
-// and end-to-end tested against a working endpoint that already speaks the
-// lib/types.ts contract. The mock is deterministic (same input → same rating)
-// and never throws on valid input.
-// ─────────────────────────────────────────────────────────────────────────────
-
+// Node runtime (Anthropic SDK + Buffer); never cache — every analysis is dynamic.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const TIERS: { max: number; verdict: string; emoji: string }[] = [
-  { max: 20, verdict: "Greek Statue Energy", emoji: "🏛️" },
-  { max: 40, verdict: "Suspiciously Gym-Fit", emoji: "💪" },
-  { max: 60, verdict: "Dad Bod In Training", emoji: "🏃" },
-  { max: 80, verdict: "Certified Dad Bod", emoji: "🍔" },
-  { max: 101, verdict: "Grillmaster Supreme", emoji: "🌭" },
-];
-
-function hash(input: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < input.length; i++) {
-    h ^= input.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return Math.abs(h);
-}
-
-function mockResult(seed: string): DadBodResult {
-  const rating = 35 + (hash(seed || "dad") % 61); // 35–95
-  const tier = TIERS.find((t) => rating < t.max) ?? TIERS[TIERS.length - 1];
-  return {
-    rating,
-    verdict: tier.verdict,
-    emoji: tier.emoji,
-    review:
-      `Our crack team of imaginary scientists ran the numbers and landed on a confident ${rating}%. ` +
-      `There's a real "could win a wrestling match, could also nap through it" duality here. ` +
-      `The dad-ergy is strong; the snack game is stronger.`,
-    tips: [
-      "Swap one (1) evening snack for a slightly smaller evening snack.",
-      "Stairs count as cardio. So does carrying every grocery bag in one trip.",
-      "Keep doing what you're doing — confidence is 90% of the look.",
-    ],
-    mock: true,
-  };
+function errorResponse(message: string, status: number) {
+  return NextResponse.json<AnalyzeErrorResponse>({ error: message }, { status });
 }
 
 export async function POST(request: NextRequest) {
+  // 1. Parse the JSON body.
   let body: AnalyzeRequest;
   try {
     body = (await request.json()) as AnalyzeRequest;
   } catch {
-    return NextResponse.json<AnalyzeErrorResponse>(
-      { error: "Send a JSON body with an `imageDataUrl` or a `url`." },
-      { status: 400 },
-    );
+    return errorResponse("Send a JSON body with an `imageDataUrl` or a `url`.", 400);
   }
 
-  const imageDataUrl = body.imageDataUrl?.trim();
-  const url = body.url?.trim();
+  const imageDataUrl = body?.imageDataUrl?.trim();
+  const url = body?.url?.trim();
 
   if (!imageDataUrl && !url) {
-    return NextResponse.json<AnalyzeErrorResponse>(
-      { error: "Upload a photo or paste a link to get your rating." },
-      { status: 400 },
+    return errorResponse("Upload a photo or paste a link to get your rating.", 400);
+  }
+
+  // 2. Cheap, no-network validation so malformed input fails fast (even offline).
+  //    A data URL is fully parsed here; a URL is only checked for shape — the
+  //    expensive og:image fetch is deferred to the live path below.
+  let image: ImagePayload | null = null;
+  try {
+    if (imageDataUrl) {
+      image = parseImageDataUrl(imageDataUrl);
+    } else {
+      assertSafeUrl(url!);
+    }
+  } catch (err) {
+    if (err instanceof UserInputError) return errorResponse(err.message, 400);
+    console.error("[analyze] input validation failed:", err);
+    return errorResponse("That input didn't look right. Try uploading the photo instead.", 400);
+  }
+
+  // 3. No key → deterministic offline mock. There's nothing to analyze without a
+  //    key, so we don't hit the network for a URL — the mock is keyed on input.
+  const seed = imageDataUrl ?? url ?? "dad";
+  if (!hasApiKey()) {
+    return NextResponse.json<DadBodResult>(mockResult(seed), { status: 200 });
+  }
+
+  // 4. Live path: resolve a URL's og:image now (unreadable → friendly 400)…
+  try {
+    if (!image) image = await extractImageFromUrl(url!);
+  } catch (err) {
+    if (err instanceof UserInputError) return errorResponse(err.message, 400);
+    console.error("[analyze] image resolution failed:", err);
+    return errorResponse(
+      "Something went wrong reading that link. Try uploading the photo instead.",
+      400,
     );
   }
 
-  if (imageDataUrl) {
-    if (!imageDataUrl.startsWith("data:image/")) {
-      return NextResponse.json<AnalyzeErrorResponse>(
-        { error: "That doesn't look like an image. Try a JPG or PNG." },
-        { status: 400 },
-      );
-    }
-    const base64 = imageDataUrl.split(",")[1] ?? "";
-    const approxBytes = Math.floor((base64.length * 3) / 4);
-    if (approxBytes > MAX_IMAGE_BYTES) {
-      return NextResponse.json<AnalyzeErrorResponse>(
-        { error: "That image is a bit chonky. Keep it under 8 MB." },
-        { status: 400 },
-      );
-    }
+  // 5. …then analyze. Any provider error degrades to the mock so the UI never
+  //    hard-fails; raw provider errors and the API key are never leaked.
+  try {
+    const result = await analyzeImage(image);
+    return NextResponse.json<DadBodResult>(result, { status: 200 });
+  } catch (err) {
+    console.error("[analyze] vision call failed; serving mock:", err);
+    return NextResponse.json<DadBodResult>(mockResult(seed), { status: 200 });
   }
-
-  return NextResponse.json<DadBodResult>(mockResult(imageDataUrl ?? url ?? ""), {
-    status: 200,
-  });
 }
