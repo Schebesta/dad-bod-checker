@@ -5,6 +5,7 @@ import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import type { DadBodResult } from "@/lib/types";
+import { GiftCardArt } from "@/app/gift/GiftCardArt";
 import { cn } from "./cn";
 
 // The handoff copy below is the approved in-app bridge from DBC-6:
@@ -258,6 +259,54 @@ export function HaloHandoff({ result }: { result: DadBodResult }) {
               : "Actually, it's for my old man — gift it →"}
           </button>
         </div>
+      </div>
+
+      {/* The gift-card close — landing-page (#why) conversion, with the real
+          HALO gift card front and centre. Sits at the bottom of the handoff. */}
+      <div className="relative overflow-hidden rounded-3xl border border-hairline bg-night-2/60 p-6 text-center shadow-2xl shadow-grape/10 sm:p-8">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-16 -right-16 h-44 w-44 rounded-full bg-mango/15 blur-3xl"
+        />
+
+        <p className="relative text-sm font-bold uppercase tracking-[0.18em] text-ink-faint">
+          🎁 The Father&apos;s Day gift card
+        </p>
+        <h3 className="relative mx-auto mt-2 max-w-md text-balance text-2xl font-black leading-tight tracking-tight sm:text-3xl">
+          The gift that could <span className="text-gradient">add years</span>, not
+          inches.
+        </h3>
+        <p className="relative mx-auto mt-3 max-w-prose text-pretty text-base leading-relaxed text-ink-soft">
+          A blood test sounds like a strange present — until you realise what it&apos;s
+          really saying:{" "}
+          <em className="font-semibold not-italic text-ink">
+            I want more mornings with you.
+          </em>{" "}
+          This Father&apos;s Day, give Dad a Halo biological-age check.
+        </p>
+
+        {/* The actual HALO gift card. yourhalo.css (loaded in the root layout)
+            styles `.halo-giftcard`; supply the one --halo-* var its ring uses. */}
+        <div
+          className="relative mt-6 flex justify-center"
+          style={{ "--halo-teal-bright": "#2fd6c4" } as React.CSSProperties}
+        >
+          <GiftCardArt
+            amount={229}
+            to="Dad"
+            from="You"
+            message="Happy Father's Day — here's to many more."
+          />
+        </div>
+
+        <Link href="/gift" className={cn(ctaButtonClass, "relative mt-6")}>
+          Gift Dad a HALO check — A$229
+          <ArrowRight className="h-5 w-5" aria-hidden="true" />
+        </Link>
+        <p className="relative mt-3 text-xs leading-relaxed text-ink-faint">
+          A doctor-reviewed wellness snapshot, not a diagnosis · HALO gift cards valid 3
+          years.
+        </p>
       </div>
 
       {/* ⑤ Reassurance & fine print. */}

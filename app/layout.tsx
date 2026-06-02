@@ -1,6 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+// The HALO gift-card artefact (app/gift/GiftCardArt) is now reused in the
+// results-page handoff, so its brand stylesheet must load app-wide — not just
+// on /gift. Imported at the layout level (not a leaf) so Turbopack collects the
+// segment CSS correctly. Every rule is scoped to `.halo`/`.halo-*`, so it can't
+// affect any other UI.
+import "./gift/yourhalo.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
